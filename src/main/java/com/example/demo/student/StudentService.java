@@ -1,5 +1,7 @@
 package com.example.demo.student;
 
+import com.example.demo.student.exception.StudentNotFoundException;
+import com.example.demo.student.exception.badRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -11,28 +13,24 @@ import java.util.Optional;
 public class StudentService {
 
     private final StudentRepository studentRepository;
-    public List<Student> getStudent(){
+    public List<Student> getAllStudents(){
         return studentRepository.findAll();
     }
 
-    public void addNewStudent(Student student) {
-        Optional<Student> studentOptional = studentRepository
-                .findStudentByEmail(student.getEmail());
-        if (studentOptional.isPresent()
-        ){
-            throw new IllegalStateException("email taken");
+    public void addStudent(Student student) {
+        Boolean existsEmail = studentRepository
+                .selectExistsEmail(student.getEmail());
+        if (existsEmail) {
+            throw new badRequestException(
+                    "Email " + student.getEmail() + " taken");
         }
         studentRepository.save(student);
-
-
     }
 
     public void deleteStudent(Long studentId) {
-        boolean exists = studentRepository.existsById(studentId);
-        if(!exists){
-            throw new IllegalStateException(
-                    "student with id " + studentId + " does not exists"
-            );
+        if(!studentRepository.existsById(studentId)) {
+            throw new StudentNotFoundException(
+                    "Student with id " + studentId + " does not exists");
         }
         studentRepository.deleteById(studentId);
     }

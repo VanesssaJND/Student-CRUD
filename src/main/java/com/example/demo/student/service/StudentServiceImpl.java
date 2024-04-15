@@ -1,7 +1,11 @@
-package com.example.demo.student;
+package com.example.demo.student.service;
 
+import com.example.demo.student.Student;
+import com.example.demo.student.StudentDTO;
+import com.example.demo.student.StudentRepository;
 import com.example.demo.student.exception.StudentNotFoundException;
 import com.example.demo.student.exception.badRequestException;
+import com.example.demo.student.service.StudentService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -10,20 +14,28 @@ import java.util.Optional;
 
 @AllArgsConstructor
 @Service
-public class StudentService {
+public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository studentRepository;
+
     public List<Student> getAllStudents(){
         return studentRepository.findAll();
     }
 
-    public void addStudent(Student student) {
+    public void addStudent(StudentDTO studentDTO) {
         Boolean existsEmail = studentRepository
-                .selectExistsEmail(student.getEmail());
+                .selectExistsEmail(studentDTO.getEmail());
         if (existsEmail) {
             throw new badRequestException(
-                    "Email " + student.getEmail() + " taken");
+                    "Email " + studentDTO.getEmail() + " taken");
         }
+
+        Student student = new Student();
+        student.setName(studentDTO.getName());
+        student.setEmail(studentDTO.getEmail());
+        student.setGender(studentDTO.getGender());
+        student.setDob(studentDTO.getDob());
+
         studentRepository.save(student);
     }
 

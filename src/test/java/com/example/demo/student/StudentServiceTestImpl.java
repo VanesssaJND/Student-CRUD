@@ -2,6 +2,7 @@ package com.example.demo.student;
 
 import com.example.demo.student.exception.StudentNotFoundException;
 import com.example.demo.student.exception.badRequestException;
+import com.example.demo.student.service.StudentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,15 +20,17 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StudentServiceTest {
+class StudentServiceTestImpl {
 
     @Mock
     private StudentRepository studentRepository;
-    private StudentService underTest;
+    @Mock
+    private StudentMapper studentMapper;
+    private StudentServiceImpl underTest;
 
     @BeforeEach
     void setUp(){
-        underTest = new StudentService(studentRepository);
+        underTest = new StudentServiceImpl(studentRepository);
     }
 
     @DisplayName("Test the Get all students method")
@@ -42,13 +45,13 @@ class StudentServiceTest {
     @Test
     void canAddStudent() {
         //given
-        Student student = new Student(
+        StudentDTO studentDTO = new StudentDTO(
                 "Vanessa",
                 "vane@gmail.com",
                 Gender.FEMALE,
                 LocalDate.of(2000, Month.APRIL, 17));
         //when
-        underTest.addStudent(student);
+        underTest.addStudent(studentDTO);
 
         //then
         ArgumentCaptor<Student> studentArgumentCaptor =
@@ -58,25 +61,28 @@ class StudentServiceTest {
         ).save(studentArgumentCaptor.capture());
 
         Student capturedStudent = studentArgumentCaptor.getValue();
-        assertThat(capturedStudent).isEqualTo(student);
+        assertThat(studentDTO.getName()).isEqualTo(capturedStudent.getName());
+        assertThat(studentDTO.getEmail()).isEqualTo(capturedStudent.getEmail());
+        assertThat(studentDTO.getGender()).isEqualTo(capturedStudent.getGender());
+        assertThat(studentDTO.getDob()).isEqualTo(capturedStudent.getDob());
     }
     @DisplayName("Test exception handling")
     @Test
     void willThrowWhenEmailIsTaken() {
         //given
-        Student student = new Student(
+        StudentDTO studentDTO = new StudentDTO(
                 "Vanessa",
                 "vane@gmail.com",
                 Gender.FEMALE,
                 LocalDate.of(2000, Month.APRIL, 17));
 
-        given(studentRepository.selectExistsEmail(student.getEmail()))
+        given(studentRepository.selectExistsEmail(studentDTO.getEmail()))
                 .willReturn(true);
         //when
         //then
-        assertThatThrownBy(() ->underTest.addStudent(student))
+        assertThatThrownBy(() ->underTest.addStudent(studentDTO))
                 .isInstanceOf(badRequestException.class)
-                .hasMessageContaining("Email " + student.getEmail()+ " taken");
+                .hasMessageContaining("Email " + studentDTO.getEmail()+ " taken");
 
         verify(studentRepository, never()).save(any());
     }

@@ -1,5 +1,6 @@
 package com.example.demo.student;
 
+import com.example.demo.student.service.StudentServiceImpl;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +12,7 @@ import java.util.List;
 @RequestMapping(path = "api/v1/student")
 public class StudentController {
 
-    private final StudentService studentService;
+    private final StudentServiceImpl studentService;
 
 
     @GetMapping
@@ -19,8 +20,8 @@ public class StudentController {
         return studentService.getAllStudents();
     }
     @PostMapping
-    public void registerNewStudent(@Valid @RequestBody Student student){
-        studentService.addStudent(student);
+    public void registerNewStudent(@Valid @RequestBody StudentDTO studentDTO){
+        studentService.addStudent(studentDTO);
     }
     @DeleteMapping(path = "{studentId}")
     public void deleteStudent(@PathVariable("studentId") Long studentId){
